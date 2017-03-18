@@ -19,9 +19,11 @@ class VisitBookingSearch extends VisitBooking
     {
         return [
             [['id', 'visitor_id', 'visit_number', 'status', 'receiver_by', 'created_by', 'created_at', 'updated_by', 'updated_at'], 'integer'],
-            [['visit_date'], 'safe'],
+            [['visit_date','start','end'], 'safe'],
         ];
     }
+    public $start;
+    public $end;
 
     /**
      * @inheritdoc
@@ -70,6 +72,8 @@ class VisitBookingSearch extends VisitBooking
             'updated_by' => $this->updated_by,
             'updated_at' => $this->updated_at,
         ]);
+        $query->andFilterWhere(['>=','date(visit_date)',$this->start]);
+        $query->andFilterWhere(['<=','date(visit_date)',$this->end]);
 
         return $dataProvider;
     }

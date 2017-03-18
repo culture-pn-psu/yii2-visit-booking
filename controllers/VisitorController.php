@@ -121,4 +121,32 @@ class VisitorController extends Controller
             throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
+    
+    
+    public function actionCreateAjax($formAction = null)
+    {
+        $model = new Visitor();
+        
+        if(Yii::$app->request->isPost){
+            \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+            $success = false;
+            $result=null;
+            if ($model->load(Yii::$app->request->post())){
+                $success = false;
+                $result = [];
+                if($model->save()) {
+                    $success = true;
+                    $result = $model->attributes;
+                    return ['success' => $success, 'result' => $result];
+                }
+            }
+            return ['success' => $success, 'result' => $result];
+        }
+        
+        return $this->renderPartial('_form', [
+            'model' => $model,
+            'formAction' => $formAction
+        ]);
+    }
+
 }

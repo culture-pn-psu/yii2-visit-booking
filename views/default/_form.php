@@ -1,11 +1,16 @@
 <?php
 
 
+use yii\helpers\Url;
 use yii\bootstrap\Html;
 use yii\bootstrap\ActiveForm;
+use yii\bootstrap\Modal;
+
 use kartik\widgets\Typeahead;
 use kartik\widgets\DatePicker;
 use kartik\widgets\DateTimePicker;
+use kartik\widgets\Select2;
+
 use culturePnPsu\visitBooking\models\Visitor;
 use culturePnPsu\learningCenter\models\LearningCenter;
 use culturePnPsu\person\models\Person;
@@ -34,6 +39,16 @@ $templateRange['horizontalCssClasses'] = [
     'hint' => '',
 ];
 $model->receiver_by=empty($model->receiver_by)?Yii::$app->user->id:$model->receiver_by;
+
+
+
+$modals['visitor'] = Modal::begin([
+    'header' => Yii::t('culture/visitor', 'Create Visitor'),
+    'size' => Modal::SIZE_LARGE
+]);
+echo Yii::$app->runAction('/visit-booking/visitor/create-ajax', ['formAction' => Url::to(['/visit-booking/visitor/create-ajax'])]);
+            
+Modal::end();
 ?>
 
 <div class="visit-booking-form">
@@ -56,16 +71,36 @@ $model->receiver_by=empty($model->receiver_by)?Yii::$app->user->id:$model->recei
 
     <?php #= $form->field($model, 'visitor_id')->textInput()?>
         
-    <?= $form->field($modelVisitor, 'title')->widget(Typeahead::classname(), [
-        'options' => ['placeholder' => 'Filter as you type ...'],
-        'pluginOptions' => ['highlight'=>true],
-        'defaultSuggestions' => $distinctTitle,
-        'dataset' => [
-            [
-                'local' => $distinctTitle,
-                'limit' => 10
+    <?php
+// $edocInputTemplate = <<< HTML
+// <div class="input-group">
+//     {input}
+    
+//     <span class="input-group-addon btn btn-success"  role="edoc" data-toggle="modal" data-target="#{$modals['edoc']->id}">
+//         <i class="fa fa-plus"></i>
+//     </span>
+// </div>
+// HTML;
+    
+    echo $form->field($model, 'visitor_id')->widget(Select2::classname(), [
+            'data'=>Visitor::getList(),
+            'options' => ['placeholder' => Yii::t('culture', 'Select')],
+            'pluginOptions' => [
+                'allowClear' => true
+            ],
+            'addon' => [
+                'append' => [
+                    'content' => Html::button(Html::icon('plus').' เพิ่มผู้เข้าชม', [
+                        'class' => 'btn btn-success', 
+                        'title' => 'Add', 
+                        //'data-toggle' => 'tooltip',
+                        'role'=>'edoc',
+                        'data-toggle'=>'modal',
+                        'data-target'=>"#{$modals['visitor']->id}",
+                    ]),
+                    'asButton' => true
+                ]
             ]
-        ]
     ]); ?>
 
     
@@ -169,3 +204,19 @@ $model->receiver_by=empty($model->receiver_by)?Yii::$app->user->id:$model->recei
     <?php ActiveForm::end(); ?>
 
 </div>
+
+<?php
+$visitorInputId = Html::getInputId($model, 'visitor_id');
+$jsHead[] = <<< JS
+function callbackEdoc(result)
+{   
+    $("#{$visitorInputId}").append($('<option>', {
+        value: result.id,
+        text: result.title
+    }));
+    $("#{$visitorInputId}").val(result.id).trigger('change.select2');
+    
+    $("#{$modals['visitor']->id}").modal('hide');
+}
+JS;
+$this->registerJs(implode("\n", $jsHead), $this::POS_HEAD);

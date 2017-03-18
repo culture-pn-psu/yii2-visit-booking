@@ -10,6 +10,7 @@ use culturePnPsu\visitBooking\models\VisitBookingSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Json;
 
 use culturePnPsu\learningCenter\models\LearningCenter;
 
@@ -40,7 +41,7 @@ class DefaultController extends Controller
     public function actionIndex()
     {
         $searchModel = new VisitBookingSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $dataProvider = $searchModel->search(Yii::$app->request->post());
 
         return $this->render('index', [
             'searchModel' => $searchModel,
@@ -74,10 +75,7 @@ class DefaultController extends Controller
         if ($model->load(Yii::$app->request->post())){
             
             $post = Yii::$app->request->post();
-            // echo "<pre>";
-            // print_r($post);
             $valid = false;
-            
             if (isset($post['VisitBookingDetail']['learning_center_id'])) {
                 foreach ($post['VisitBookingDetail']['learning_center_id'] as $key => $detail) {
                     foreach ($detail['booking_time'] as $time => $select) {
@@ -91,6 +89,8 @@ class DefaultController extends Controller
             if($valid === false){
                 $modelBookingDetail->addError('booking_time','กรุณาเลือกเวลา');
             }
+            // echo "<pre>";
+            // print_r($post);
             // echo $valid;
             // exit();
             if ($valid) {
@@ -121,8 +121,8 @@ class DefaultController extends Controller
                         return $this->redirect(['view', 'id' => $model->id]);
                     } else {
                         $transaction->rollBack();
-                        print_r($model->getErrors());
-                        print_r($modelBookingDetail->getErrors());
+                        // print_r($model->getErrors());
+                        // print_r($modelBookingDetail->getErrors());
                     }
                 } catch (Exception $e) {
                     $transaction->rollBack();
@@ -186,5 +186,34 @@ class DefaultController extends Controller
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+    
+    
+    ################################
+    
+    public function actionJsoncalendar($start = NULL, $end = NULL, $_ = NULL) {
+        $activity = VisitBooking::find()->all();
+        $events = array();
+        foreach ($activity as $act) {
+            $Event = new \yii2fullcalendar\models\Event();
+            $Event->id = $act->id;
+            
+            //$status=$act->status==0?' ('.$act->statusLabel.')':'';
+            $Event->title = $act->visitor->title; 
+            
+            //$Event->textColor = $act->status?'#fff':'#ff0000';
+            //$Event->color = $act->calendar->color;
+            $Event->start = Yii::$app->formatter->asDate($act->visit_date, 'php:Y-m-d');
+            $Event->end = Yii::$app->formatter->asDate($act->visit_date, 'php:Y-m-d');
+            $Event->editable = true;
+            $Event->allDay = true;
+            $Event->durationEditable = true;
+            $Event->startEditable = true;
+            $events[] = $Event;
+        }
+        //print_r($events);
+        header('Content-type: application/json');
+        echo Json::encode($events);
+        Yii::$app->end();
     }
 }

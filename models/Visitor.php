@@ -108,7 +108,9 @@ class Visitor extends \yii\db\ActiveRecord
         return ArrayHelper::getColumn(self::find()->distinctTitle(),'title');
     }
     
-    
+    public static function getList(){
+        return ArrayHelper::map(self::find()->all(),'id', 'title');
+    }
     
     
 }
