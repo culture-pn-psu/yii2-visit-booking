@@ -3,6 +3,7 @@
 namespace culturePnPsu\visitBooking\models;
 
 use Yii;
+use culturePnPsu\learningCenter\models\LearningCenter;
 
 /**
  * This is the model class for table "visit_booking_detail".
@@ -46,4 +47,19 @@ class VisitBookingDetail extends \yii\db\ActiveRecord
             'learning_center_range_id' => Yii::t('culture/visit-booking', 'Learning Center Range ID'),
         ];
     }
+    
+    public function getVisitBooking()
+   {
+       return $this->hasOne(VisitBooking::className(), ['id' => 'visit_booking_id']);
+   }
+   
+   public function getLearningCenter(){
+       return $this->hasOne(LearningCenter::className(), ['id' => 'learning_center_id']);
+   }
+   
+   
+   public function getTime(){
+       $model = $this->visitBooking;
+       return $model->visit_date.' '.$this->booking_time;
+   }
 }

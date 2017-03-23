@@ -3,6 +3,7 @@
 use yii\helpers\Url;
 use yii\helpers\Html;
 use yii\grid\GridView;
+use yii\widgets\ListView;
 use yii\widgets\Pjax;
 
 use yii\widgets\ActiveForm;
@@ -34,14 +35,17 @@ $this->params['breadcrumbs'][] = $this->title;
                     'header' => [
                         'left' => 'prev,next today',
                         'center' => 'title',
+                        //'center' => false,
                         'right' => 'month,basicWeek,basicDay'
                     ],
+                   
                     'clientOptions' => [
 //                        'views' => [
 //                            'year' => [
 //                                'type' => 'YearView',
 //                            ]
 //                        ],
+                        //'weekends' => false,
                         'selectable' => true,
                         'selectHelper' => true,
                         'draggable' => true,
@@ -69,33 +73,26 @@ $this->params['breadcrumbs'][] = $this->title;
                 ],
             ]); ?>
 
-            <?= $form->field($searchModel, 'start') ?>
-            <?= $form->field($searchModel, 'end') ?>
-    
+            <?= $form->field($searchModel, 'start')->hiddenInput()->label(false) ?>
+            <?= $form->field($searchModel, 'end')->hiddenInput()->label(false) ?>
+            <?php
+            
+            if($searchModel->start && $searchModel->end){
+                echo Html::beginTag('h4',['class'=>'text-center']);
+                    echo Yii::$app->formatter->asDate($searchModel->start);
+                    echo ' - ';
+                    $searchModel->end = date('Y-m-d',strtotime($searchModel->end . "-1 days"));
+                    echo Yii::$app->formatter->asDate($searchModel->end);
+                echo Html::endTag('h4');
+            }
+            ?>
             <?php ActiveForm::end(); ?>
             
-            
-            
-            <?= GridView::widget([
+            <?= ListView::widget([
                 'dataProvider' => $dataProvider,
                 //'filterModel' => $searchModel,
-                'columns' => [
-                    ['class' => 'yii\grid\SerialColumn'],
-                    'visit_date:date',
-                    [
-                        'attribute' => 'visitor_id',
-                        'value'=>'visitor.title'
-                    ],
-                    'visit_number',
-                    //'status',
-                    // 'receiver_by',
-                    // 'created_by',
-                    // 'created_at',
-                    // 'updated_by',
-                    // 'updated_at',
-        
-                    //['class' => 'yii\grid\ActionColumn'],
-                ],
+                'itemView' => '_list_item',
+                'layout' => "{summary}\n{items}",
             ]); ?>
         <?php Pjax::end(); ?>
         </div>
@@ -110,32 +107,22 @@ var date_start = '';
 var date_end = '';
     $(function(){
        $('button.fc-prev-button,button.fc-next-button').click(function() {
-        //   date_start = $('.fc-row:first-child .fc-content-skeleton .fc-day-top').not('.fc-other-month').attr('data-date');
-        //   date_end = $('.fc-row:last-child .fc-content-skeleton .fc-day-top').not('.fc-other-month').select(':last-child').attr('data-date');
-           
+        submitDate();
+        }); 
+       submitDate();
+    });
+    
+    function submitDate(){
            date_start = GetCalendarDateRange().start;
            date_end = GetCalendarDateRange().end;
-           
-           
+         
            console.log(date_start+' '+date_end);
            console.log(GetCalendarDateRange());
            
-           
-           
-           //console.log($('#calender').fullCalendar("getDate"));
-           //alert(date_start+' '+date_end);
-           //console.log($.fullCalendar);
-           //alert($.fullcalendar.elemData);
-           //$.pjax.reload({container:"#{$pjaxGrid->id}"});
            $("#{$start}").val(date_start);
            $("#{$end}").val(date_end);
            $("#{$form->id}").submit();
-        }); 
-        
-        // $("#{$pjaxCal->id}").on("pjax:end", function() {
-        //     $.pjax.reload({container:"#{$pjaxGrid->id}"});  //Reload GridView
-        // });
-    });
+    }
     
     function GetCalendarDateRange() {
         var calendar = $('#calendar').fullCalendar('getCalendar');

@@ -75,4 +75,9 @@ class VisitBooking extends \yii\db\ActiveRecord
    {
        return $this->hasOne(Visitor::className(), ['id' => 'visitor_id']);
    }
+   
+   public function getVisitBookingDetails()
+   {
+       return $this->hasMany(VisitBookingDetail::className(), ['visit_booking_id' => 'id']);
+   }
 }
