@@ -3,6 +3,7 @@
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
+use culturePnPsu\visitBooking\models\Visitor;
 /* @var $this yii\web\View */
 /* @var $searchModel culturePnPsu\visitBooking\models\VisitorSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -30,6 +31,7 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'type',
                 'value'=>'typeLabel',
+                'filter' => Visitor::getTypeList()
                 ],
             'created_by',
             'created_at',

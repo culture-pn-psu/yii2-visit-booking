@@ -52,6 +52,7 @@ class Visitor extends \yii\db\ActiveRecord
             [['title'], 'required'],
             [['type', 'created_by', 'created_at', 'updated_by', 'updated_at'], 'integer'],
             [['title'], 'string', 'max' => 255],
+            [['title'], 'unique'], 
         ];
     }
 
@@ -80,17 +81,19 @@ class Visitor extends \yii\db\ActiveRecord
         return new VisitorQuery(get_called_class());
     }
     
-    const TYPE_FACULTY = 1;
-    const TYPE_DEPARTMENT = 2;
-    const TYPE_SCHOOL =3;
+    const TYPE_PERSON =1;
+    const TYPE_SCHOOL =2;
+    const TYPE_DEPARTMENT = 3;
+    const TYPE_FACULTY = 4;
 
     
     public function getItems($key){
         $items = [
             'type'=> [
-                self::TYPE_FACULTY => Yii::t('culture/visitor', 'Faculty'),
-                self::TYPE_DEPARTMENT => Yii::t('culture/visitor', 'Department'),
+                self::TYPE_PERSON => Yii::t('culture/visitor', 'Person'),
                 self::TYPE_SCHOOL => Yii::t('culture/visitor', 'School'),
+                self::TYPE_DEPARTMENT => Yii::t('culture/visitor', 'Department'),
+                self::TYPE_FACULTY => Yii::t('culture/visitor', 'Faculty'),
                 ]
             ];
         return ArrayHelper::getValue($items,$key);
@@ -108,8 +111,8 @@ class Visitor extends \yii\db\ActiveRecord
         return ArrayHelper::getColumn(self::find()->distinctTitle(),'title');
     }
     
-    public static function getList(){
-        return ArrayHelper::map(self::find()->all(),'id', 'title');
+    public static function getList($type=null){
+        return ArrayHelper::map(self::find()->andFilterWhere(['type'=>$type])->all(),'id', 'title');
     }
     
     

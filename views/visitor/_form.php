@@ -11,6 +11,7 @@ use culturePnPsu\visitBooking\models\Visitor;
   $formOptions['options'] = ['enctype' => 'multipart/form-data'];
   if($formAction !== null)  $formOptions['action'] = $formAction;
  
+ $model->type = empty($model->type)?Visitor::TYPE_SCHOOL:$model->type;
 ?>
 
 <div class="visitor-form">

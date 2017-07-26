@@ -1,9 +1,14 @@
 <?php
+use yii\helpers\Url;
 use yii\helpers\Html;
+use yii\bootstrap\Modal;
 
 // print_r($model);
 // exit();
 $date = array_keys($model);
+
+
+
 ?>    
 
 
@@ -21,11 +26,39 @@ $date = array_keys($model);
         <?php foreach($model as $key => $value):?>
             <?php foreach($value as $k => $visitBooking):?>
                 <div class="row">
+                    <div class="col-sm-1 text-right" style="margin:0;">
+                        <?=Html::beginTag('h2',['style'=>"margin:10px 0px 0px 15px;font-size:36px;"]);?>
+                        
+                            <?=Html::a('<i class="fa fa-user-secret"></i> '
+                        ,['view','id'=>$visitBooking->id]
+                        ,[
+                            // 'id' => 'popupModal',
+                            // 'data-toggle'=>'modal',
+                            // 'data-target'=>"#{$modals['visitor']->id}",
+                            'class'=>"update-dialog",
+                            'data-form-id' => $visitBooking->id,
+                            'data-pjax' => 0,
+                        ]);?>
+                        <?=Html::endTag('h2');?>
+                    </div>
                     <div class="col-sm-10">
                         <?=Html::beginTag('h4');?>
-                            &nbsp;&nbsp;&nbsp;
-                            <?=Html::a('<i class="fa fa-user-secret"></i> '.$visitBooking->visitor->title
-                        ,['view','id'=>$visitBooking->id]);?>
+                            <?=Html::a($visitBooking->visitor->title
+                        ,['view','id'=>$visitBooking->id]
+                        ,[
+                            // 'id' => 'popupModal',
+                            // 'data-toggle'=>'modal',
+                            // 'data-target'=>"#{$modals['visitor']->id}",
+                            'class'=>"update-dialog",
+                            'data-form-id' => $visitBooking->id,
+                            'data-pjax' => 0,
+                        ]);?>
+                        <br/>&nbsp;
+                        <?=Html::tag('small','<i class="fa fa-user-o"></i> '.Yii::t('culture/visit-booking','Count').' '.$visitBooking->visit_number
+                            .' '.Yii::t('culture/visit-booking','Human'))?>
+                        <?=Html::tag('small','<i class="fa fa-clock-o"></i> '.Yii::$app->formatter->asTime($visitBooking->visit_date,"php:H:i").' น.')?>
+                        
+                            
                         <?=Html::endTag('h4');?>
                     </div>
                 </div>
@@ -50,3 +83,4 @@ $date = array_keys($model);
     </div>
     
 </div>
+

@@ -8,6 +8,7 @@ use culturePnPsu\visitBooking\models\VisitBooking;
 use culturePnPsu\visitBooking\models\VisitBookingDetail;
 use culturePnPsu\visitBooking\models\VisitBookingDetailSearch;
 use culturePnPsu\visitBooking\models\VisitBookingSearch;
+use culturePnPsu\visitBooking\models\VisitBookingTodaySearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -41,7 +42,7 @@ class DefaultController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new VisitBookingSearch();
+        $searchModel = new VisitBookingTodaySearch();
         $dataProvider = $searchModel->search(Yii::$app->request->post());
         $dataProvider->sort->defaultOrder = [
             'visit_date'=>SORT_ASC,
@@ -76,9 +77,18 @@ class DefaultController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
+        if (Yii::$app->request->isAjax) {
+            return $this->renderAjax('view', [
+                        'model' => $this->findModel($id),
+                        'ajax' => Yii::$app->request->isAjax
+            ]);
+        } else {
+            return $this->render('view', [
+                        'model' => $this->findModel($id),
+                        'ajax' => Yii::$app->request->isAjax
+            ]);
+        }
+        
     }
 
     /**
@@ -86,11 +96,17 @@ class DefaultController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate($start = null,$formAction=null,$isAjax = null)
     {
         $model = new VisitBooking();
         $modelBookingDetail = new VisitBookingDetail();
         $modelVisitor = new Visitor();
+        
+        if(isset($start))
+        $model->visit_date = $start.' '.date('H:i:s');
+        
+        $success = false;
+        $result=null;
 
         if ($model->load(Yii::$app->request->post())){
             
@@ -99,7 +115,7 @@ class DefaultController extends Controller
             if (isset($post['VisitBookingDetail']['learning_center_id'])) {
                 foreach ($post['VisitBookingDetail']['learning_center_id'] as $key => $detail) {
                     foreach ($detail['booking_time'] as $time => $select) {
-                        echo $time .' '. $select."<br/>";
+                        //echo $time .' '. $select."<br/>";
                         if($valid = $select !== 0){
                             break;
                         }
@@ -116,6 +132,7 @@ class DefaultController extends Controller
             if ($valid) {
                 $transaction = Yii::$app->db->beginTransaction();
                 try {
+                    $model->visit_date = $model->visit_date.' '.$model->visit_time;
                     if ($flag = $model->save(false)) {
                         
                          if (isset($post['VisitBookingDetail']['learning_center_id'])) {
@@ -138,7 +155,15 @@ class DefaultController extends Controller
 
                     if ($flag) {
                         $transaction->commit();
-                        return $this->redirect(['view', 'id' => $model->id]);
+                        if (Yii::$app->request->isAjax) {
+                           \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+                            
+                            $success = true;
+                            $result = $model->attributes;
+                            return ['success' => $success, 'result' => $result];
+                        }else{
+                            return $this->redirect(['view', 'id' => $model->id]);
+                        }
                     } else {
                         $transaction->rollBack();
                         // print_r($model->getErrors());
@@ -152,12 +177,41 @@ class DefaultController extends Controller
             
             
         } 
-            return $this->render('create', [
+        
+        if (isset($isAjax)) {
+            return $this->renderPartial('_form', [
                 'model' => $model,
                 'modelBookingDetail' => $modelBookingDetail,
                 'modelVisitor' => $modelVisitor,
+                'formAction'=>$formAction
             ]);
+        } else {
+             return $this->render('create', [
+                'model' => $model,
+                'modelBookingDetail' => $modelBookingDetail,
+                'modelVisitor' => $modelVisitor,
+                'formAction'=>$formAction
+            ]);
+        }
         
+    }
+    
+     public function actionResize($id = null) {
+        $post = Yii::$app->request->post();
+        $model = $this->findModel($post['id']);
+        $json = ["success" => false, $post];
+        //print_r($post);
+        
+        if ($model->load(['VisitBooking'=> $post])) {
+            $time = Yii::$app->formatter->asTime($model->visit_date,'php:H:i:s');
+            $model->visit_date = $post['start'].' '.$time;
+            if ($model->save()) {
+                $json = ["success" => true];
+            }
+        }
+        header('Content-type: application/json');
+        echo Json::encode($json);
+        Yii::$app->end();
     }
 
     /**

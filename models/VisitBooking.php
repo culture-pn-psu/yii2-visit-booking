@@ -34,7 +34,7 @@ class VisitBooking extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['visitor_id', 'visit_date', 'visit_number', 'receiver_by'], 'required'],
+            [['visitor_id', 'visit_date', 'visit_time', 'visit_number', 'receiver_by'], 'required'],
             [['visitor_id', 'visit_number', 'status', 'receiver_by', 'created_by', 'created_at', 'updated_by', 'updated_at'], 'integer'],
             [['visit_date'], 'safe'],
         ];
@@ -50,6 +50,7 @@ class VisitBooking extends \yii\db\ActiveRecord
             'visitor_id' => Yii::t('culture/visit-booking', 'Visitor ID'),
             'visitor_title' => Yii::t('culture/visit-booking', 'Visitor Title'),
             'visit_date' => Yii::t('culture/visit-booking', 'Visit Date'),
+            'visit_time' => Yii::t('culture/visit-booking', 'Visit Time'),
             'visit_number' => Yii::t('culture/visit-booking', 'Visit Number'),
             'status' => Yii::t('culture/visit-booking', 'Status'),
             'receiver_by' => Yii::t('culture/visit-booking', 'Receiver By'),
@@ -59,6 +60,8 @@ class VisitBooking extends \yii\db\ActiveRecord
             'updated_at' => Yii::t('culture', 'Updated At'),
         ];
     }
+    
+    public $visit_time;
 
     /**
      * @inheritdoc

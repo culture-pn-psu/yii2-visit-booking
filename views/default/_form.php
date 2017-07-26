@@ -9,6 +9,7 @@ use yii\bootstrap\Modal;
 use kartik\widgets\Typeahead;
 use kartik\widgets\DatePicker;
 use kartik\widgets\DateTimePicker;
+use kartik\widgets\TimePicker;
 use kartik\widgets\Select2;
 
 use culturePnPsu\visitBooking\models\Visitor;
@@ -54,13 +55,14 @@ Modal::end();
 <div class="visit-booking-form">
 
     <?php $form = ActiveForm::begin([
+            'action' => $formAction?$formAction:'',
             'layout' => 'horizontal',
             'fieldConfig' => [
                 'template' => "{label}\n{beginWrapper}\n{input}\n{hint}\n{endWrapper}\n{error}",
                 'horizontalCssClasses' => [
                     'label' => 'col-sm-3',
-                    'offset' => 'col-sm-offset-4',
-                    'wrapper' => 'col-sm-6',
+                    'offset' => 'col-sm-offset-2',
+                    'wrapper' => 'col-sm-7',
                     'error' => '',
                     'hint' => '',
                 ],
@@ -109,16 +111,25 @@ Modal::end();
      $templateModel['horizontalCssClasses'] = [
         'label' => 'col-sm-3',
         'offset' => 'col-sm-offset-4',
-        'wrapper' => 'col-sm-4',
+        'wrapper' => 'col-sm-3',
         'error' => '',
         'hint' => '',
     ];
-    echo $form->field($model, 'visit_date',$templateModel)->widget(DateTimePicker::className(),[
+    echo $form->field($model, 'visit_date',$templateModel)->widget(DatePicker::className(),[
         'pluginOptions' => [
             'autoclose'=>true,
-            'format' => 'yyyy-mm-dd hh:ii',
+            'format' => 'yyyy-mm-dd',
             'todayHighlight' => true,
             'todayBtn' => true,
+        ]
+    ]);
+    
+    echo $form->field($model, 'visit_time',$templateModel)->widget(TimePicker::className(),[
+        'pluginOptions' => [
+            'showSeconds' => true,
+            'showMeridian' => false,
+            'minuteStep' => 1,
+            'secondStep' => 5,
         ]
     ]);
     
@@ -145,7 +156,7 @@ Modal::end();
         </div>*/?>
         <?=Html::activeLabel($modelBookingDetail,'learning_center_id',['class'=>'control-label col-sm-3'])?>
      
-        <div class="col-sm-6">
+        <div class="col-sm-7">
             <?php
             echo Html::errorSummary($modelBookingDetail,['class'=>'alert alert-error alert-dismissible']);
             
@@ -220,3 +231,33 @@ function callbackEdoc(result)
 }
 JS;
 $this->registerJs(implode("\n", $jsHead), $this::POS_HEAD);
+
+if($formAction !== null) {
+$js[] = <<< JS
+$(document).on('submit', '#{$form->id}', function(e){
+  e.preventDefault();
+  var form = $(this);
+  var formData = new FormData(form[0]);
+  // alert(form.serialize());
+  
+  $.ajax({
+    url: form.attr('action'),
+    type : 'POST',
+    data: formData,
+    contentType:false,
+    cache: false,
+    processData:false,
+    dataType: "json",
+    success: function(data) {
+        console.log(data);
+      if(data.success){
+         callbackEvent();
+      }else{
+        alert('Fail');
+      }
+    }
+  });
+});
+JS;
+$this->registerJs(implode("\n", $js));
+}

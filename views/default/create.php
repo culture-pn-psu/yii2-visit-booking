@@ -17,6 +17,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'modelBookingDetail' => $modelBookingDetail,
         'modelVisitor' => $modelVisitor,
+        'formAction'=>$formAction
     ]) ?>
 
 </div>
